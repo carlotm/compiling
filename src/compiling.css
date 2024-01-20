@@ -11,17 +11,12 @@
   --font-mono: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
 
   --gray01: #d8d8d8;
-  --gray02: #909090;
-  --gray03: #707070;
-  --gray04: #f7f7f7;
+  --gray02: #ccc;
   --black: #303030;
   --white: #ffffff;
-  --accent01: #2c68f0;
-  --accent02: #005adf;
-
-  --btn-bg-primary: linear-gradient(0deg, var(--accent02) 0%, var(--accent02) 50%, var(--accent01) 50%, var(--accent01) 100%);
-  --btn-bg-secondary: linear-gradient(0deg, #dcdcdc 0%, #dcdcdc 50%, #e9e9e9 50%, #e9e9e9 100%);
-  --btn-bg-danger: linear-gradient(0deg, #dd0000 0%, #dd0000 50%, #ee0000 50%, #ee0000 100%);
+  --papirus: #86efac;
+  --papirus-d: #14532d;
+  --not-allowed: #900;
 }
 
 *
@@ -44,7 +39,7 @@ body
     height: 100%;
     color: var(--black);
     line-height: 1;
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
     font-size: 1rem;
 }
 
@@ -79,35 +74,123 @@ h6
 }
 
 /* ====================
- * Grid
+ * UI
  * ==================== */
+
+.UI
+{
+    display: flex;
+    flex-direction: column;
+}
+
+.HUD
+{
+    background-color: var(--white);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: var(--s1);
+}
 
 .Grid
 {
     display: grid;
-    gap: var(--s2);
-    border: 10px solid red;
-    background-color: yellow;
+    gap: calc(var(--s1) / 2);
+    background-color: var(--white);
     grid-template-columns: repeat(10, 1fr);
     grid-template-rows: repeat(10, 1fr);
     padding: var(--s1);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
 }
-
-/* ====================
- * Cell
- * ==================== */
 
 .Cell
 {
-    background-color: tomato;
+    border-radius: 2px;
+    position: relative;
+    width: 2rem;
+    height: 2rem;
+}
+
+.Cell-val
+{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .Cell-index
 {
-    color: #ccc;
+    position: absolute;
+    color: #888;
+    font-size: 0.5rem;
+    bottom: 0;
+    right: 0;
+    opacity: 0;
+}
+
+.Cell.is-occupied
+{
+    background-color: var(--white);
+}
+
+.Cell.is-available
+{
+    background-color: var(--papirus);
+}
+
+.Cell.is-unavailable
+{
+    background-color: var(--gray01);
 }
 
 .Cell.is-current
 {
-    box-shadow: 0 0 4px 4px blue;
+    position: relative;
+    transform: scale(1.2);
+    z-index: 9;
+    transition: transform .3s ease-out;
+}
+
+.Cell.is-current.is-occupied
+{
+    box-shadow: 0 0 8px 2px var(--not-allowed);
+}
+
+.Cell.is-current.is-available
+{
+    box-shadow: 0 0 8px 2px var(--papirus-d);
+}
+
+.Cell.is-current.is-unavailable
+{
+    box-shadow: 0 0 8px 2px var(--not-allowed);
+}
+
+.HUD
+{
+    display: flex;
+    font-family: var(--font-sans);
+}
+
+.HUD-toolbar
+{
+    margin-left: auto;
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+}
+
+.HUD-toolbar > *
+{
+    cursor: pointer;
+    background-color: var(--gray02);
+    padding: var(--s1) calc(var(--s2) / 1.2);
+    text-decoration: none;
+    color: var(--black);
+}
+
+.HUD-toolbar > * + *
+{
+    border-left: 2px solid var(--white);
 }

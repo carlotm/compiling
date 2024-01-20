@@ -1,6 +1,15 @@
-# Umbra
+# Compiling
 
-This is an app written in elm, deployed at [carlotm.github.io/umbra](https://carlotm.github.io/umbra/).
+When I was a child, my sister showed me this puzzle,
+it's a silly game to play while compiling (https://xkcd.com/303).
+
+Warning: I don't know if the puzzle actually has a solution.
+
+Rules are:
+
+- Move the cursor with `hjkl` or arrow keys
+- `space` to put a value in the current cell
+- Put the next value horizontally or vertically skipping 2 cells or diagonally skipping 1 cell (the UI will help finding the possible moves)
 
 ## Local development
 
