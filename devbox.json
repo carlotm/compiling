@@ -11,7 +11,7 @@
     ],
     "scripts": {
       "deploy": [
-        "ELM_OPTS=--debug make clean all"
+        "ELM_OPTS=--optimize make clean all"
       ]
     }
   }
