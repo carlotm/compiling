@@ -1,22 +1,21 @@
 module Compiling exposing (main)
 
--- import File
--- import File.Download as Download
--- import File.Select as Select
-
 import Array exposing (Array)
 import Browser
+import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown)
+import File
+import File.Download as Download
+import File.Select as Select
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder, decodeString, field, int, map4, string, bool)
+import Json.Encode as Encode
+import Task
 
 
 
--- import Json.Decode as Decode exposing (Decoder, decodeString, field, int, map3, string)
--- import Json.Encode as Encode
--- import Task
 ----------------------------------------------
 -- Types
 ----------------------------------------------
@@ -36,13 +35,11 @@ type Msg
     | NewBoard
     | ShowHelp
     | GotHelp
-
-
-
--- | Save
--- | Load
--- | FileSelected File.File
--- | FileLoaded String
+    | NoOp
+    | Save
+    | Load
+    | FileSelected File.File
+    | FileLoaded String
 
 
 type Dir
@@ -67,6 +64,9 @@ type Cell
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         PressedControl "ArrowDown" ->
             ( { model | current = move Down model.current }, Cmd.none )
 
@@ -95,7 +95,7 @@ update msg model =
             ( { model | current = move Right model.current }, Cmd.none )
 
         NewBoard ->
-            ( initialModel, Cmd.none )
+            ( initialModel, Task.attempt (\_ -> NoOp) (Dom.focus "cell-0") )
 
         ShowHelp ->
             ( { model | help = True }, Cmd.none )
@@ -103,20 +103,25 @@ update msg model =
         GotHelp ->
             ( { model | help = False }, Cmd.none )
 
-        -- Load ->
-        --     ( model, Select.file [ "application/json" ] FileSelected )
-        -- FileSelected file ->
-        --     ( model, Task.perform FileLoaded (File.toString file) )
-        -- FileLoaded content ->
-        --     ( case decodeString modelDecoder content of
-        --         Ok v ->
-        --             v
-        --         Err _ ->
-        --             initialModel
-        --     , Cmd.none
-        --     )
-        -- Save ->
-        --     ( model, Download.string "board.json" "application/json" (Encode.encode 2 (encodeModel model)) )
+        Load ->
+            ( model, Select.file [ "application/json" ] FileSelected )
+
+        FileSelected file ->
+            ( model, Task.perform FileLoaded (File.toString file) )
+
+        FileLoaded content ->
+            ( case decodeString modelDecoder content of
+                Ok v ->
+                    v
+
+                Err _ ->
+                    initialModel
+            , Task.attempt (\_ -> NoOp) (Dom.focus "cell-0")
+            )
+
+        Save ->
+            ( model, Download.string "board.json" "application/json" (Encode.encode 2 (encodeModel model)) )
+
         PressedControl _ ->
             ( model, Cmd.none )
 
@@ -156,6 +161,8 @@ view model =
                                     Unavailable ->
                                         ( "is-unavailable", True )
                                 ]
+                            , tabindex 1
+                            , id ("cell-" ++ String.fromInt i)
                             ]
                             [ span [ class "Cell-val" ] [ text (cellToText c) ]
                             , span [ class "Cell-index" ] [ text (String.fromInt i) ]
@@ -168,9 +175,8 @@ view model =
                 , div [ class "HUD-toolbar" ]
                     [ button [ onClick NewBoard ] [ text "New" ]
                     , button [ onClick ShowHelp ] [ text "?" ]
-
-                    -- , button [ onClick Load ] [ text "Load" ]
-                    -- , button [ onClick Save ] [ text "Save" ]
+                    , button [ onClick Load ] [ text "Load" ]
+                    , button [ onClick Save ] [ text "Save" ]
                     ]
                 ]
             ]
@@ -188,7 +194,7 @@ view model =
                 , li [] [ text "You can place a new value diagonally skipping 1 cell" ]
                 ]
             , p [] [ text "The UI shows the possible moves, have fun!" ]
-            , button [ onClick GotHelp ] [text "Got it"]
+            , button [ onClick GotHelp ] [ text "Got it" ]
             ]
         ]
 
@@ -213,44 +219,56 @@ main =
 ----------------------------------------------
 -- Helpers
 ----------------------------------------------
--- modelDecoder : Decoder Model
--- modelDecoder =
---     map3 Model
---         (field "grid"
---             (Decode.array
---                 (Decode.int
---                     |> Decode.andThen
---                         (\v ->
---                             if v == -1 then
---                                 Decode.succeed Available
---                             else if v == -2 then
---                                 Decode.succeed Unavailable
---                             else
---                                 Decode.succeed (Occupied v)
---                         )
---                 )
---             )
---         )
---         (field "current" int)
---         (field "score" int)
--- encodeModel : Model -> Encode.Value
--- encodeModel m =
---     Encode.object
---         [ ( "grid", Encode.array encodeCell m.grid )
---         , ( "current", Encode.int m.current )
---         , ( "score", Encode.int m.score )
---         ]
--- encodeCell : Cell -> Encode.Value
--- encodeCell c =
---     Encode.int
---         (case c of
---             Occupied v ->
---                 v
---             Available ->
---                 -1
---             Unavailable ->
---                 -2
---         )
+
+
+modelDecoder : Decoder Model
+modelDecoder =
+    map4 Model
+        (field "grid"
+            (Decode.array
+                (Decode.int
+                    |> Decode.andThen
+                        (\v ->
+                            if v == -1 then
+                                Decode.succeed Available
+
+                            else if v == -2 then
+                                Decode.succeed Unavailable
+
+                            else
+                                Decode.succeed (Occupied v)
+                        )
+                )
+            )
+        )
+        (field "current" int)
+        (field "score" int)
+        (field "help" bool)
+
+
+encodeModel : Model -> Encode.Value
+encodeModel m =
+    Encode.object
+        [ ( "grid", Encode.array encodeCell m.grid )
+        , ( "current", Encode.int m.current )
+        , ( "score", Encode.int m.score )
+        , ( "help", Encode.bool m.help )
+        ]
+
+
+encodeCell : Cell -> Encode.Value
+encodeCell c =
+    Encode.int
+        (case c of
+            Occupied v ->
+                v
+
+            Available ->
+                -1
+
+            Unavailable ->
+                -2
+        )
 
 
 maybeSetValue : Model -> Model
