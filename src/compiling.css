@@ -39,8 +39,11 @@ body
     height: 100%;
     color: var(--black);
     line-height: 1;
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 select,
@@ -61,34 +64,90 @@ h6
     font-weight: bold;
 }
 
-/* ====================
- * App root
- * ==================== */
+code
+{
+    display: inline-block;
+    background-color: var(--gray01);
+    padding: calc(var(--s1) / 2) var(--s1);
+    font-family: var(--font-mono);
+}
+
+button
+{
+    background-color: var(--papirus-d);
+    color: var(--white);
+    padding: var(--s1) calc(var(--s2) / 1.2);
+    text-decoration: none;
+    border-radius: 4px;
+}
 
 .App
 {
-    min-height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
 }
 
-/* ====================
- * UI
- * ==================== */
+.App.is-flipped .App-front
+{
+    transform: rotateY(180deg);
+}
 
-.UI
+.App.is-flipped .App-back
+{
+    opacity: 1;
+    transform: rotateY(0deg);
+    z-index: 1;
+}
+
+.App-front,
+.App-back
+{
+    display: block;
+    transition-timing-function: cubic-bezier(.175, .885, .32, 1.275);
+    transition-duration: .5s;
+    transition-property: transform, opacity;
+}
+
+.App-front
 {
     display: flex;
     flex-direction: column;
+    transform: rotateY(0deg);
 }
 
-.HUD
+.App-back
 {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
     background-color: var(--white);
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    padding: var(--s1);
+    box-shadow: 0 0 4px 2px var(--gray-01);
+    position: absolute;
+    padding: var(--s3) var(--s2) var(--s2) var(--s2);
+    opacity: 0;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    transform: rotateY(-180deg);
+    z-index: -1;
+}
+
+.App-back ul
+{
+    list-style-position: inside;
+}
+
+.App-back p,
+.App-back li
+{
+    line-height: 1.4;
+}
+
+.App-back > button:last-child
+{
+    margin-top: auto;
 }
 
 .Grid
@@ -99,12 +158,11 @@ h6
     grid-template-columns: repeat(10, 1fr);
     grid-template-rows: repeat(10, 1fr);
     padding: var(--s1);
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
 }
 
 .Cell
 {
+    font-family: var(--font-mono);
     border-radius: 2px;
     position: relative;
     width: 2rem;
@@ -154,24 +212,27 @@ h6
 
 .Cell.is-current.is-occupied
 {
-    box-shadow: 0 0 8px 2px var(--not-allowed);
+    box-shadow: 0 0 4px 2px var(--not-allowed);
 }
 
 .Cell.is-current.is-available
 {
-    box-shadow: 0 0 8px 2px var(--papirus-d);
+    box-shadow: 0 0 4px 2px var(--papirus-d);
 }
 
 .Cell.is-current.is-unavailable
 {
-    box-shadow: 0 0 8px 2px var(--not-allowed);
+    box-shadow: 0 0 4px 2px var(--not-allowed);
 }
 
 .HUD
 {
     display: flex;
-    font-family: var(--font-sans);
+    align-items: center;
+    background-color: var(--white);
+    padding: var(--s1);
 }
+
 
 .HUD-toolbar
 {
@@ -183,14 +244,10 @@ h6
 
 .HUD-toolbar > *
 {
-    cursor: pointer;
-    background-color: var(--gray02);
-    padding: var(--s1) calc(var(--s2) / 1.2);
-    text-decoration: none;
-    color: var(--black);
+    border-radius: 0px;
 }
 
 .HUD-toolbar > * + *
 {
-    border-left: 2px solid var(--white);
+    border-left: 1px solid var(--white);
 }

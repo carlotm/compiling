@@ -1,21 +1,22 @@
 module Compiling exposing (main)
 
-import Array exposing (Array)
-import Browser
-import Browser.Events exposing (onKeyDown)
 -- import File
 -- import File.Download as Download
 -- import File.Select as Select
+
+import Array exposing (Array)
+import Browser
+import Browser.Events exposing (onKeyDown)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Json.Decode as Decode
+
+
+
 -- import Json.Decode as Decode exposing (Decoder, decodeString, field, int, map3, string)
 -- import Json.Encode as Encode
 -- import Task
-
-
-
 ----------------------------------------------
 -- Types
 ----------------------------------------------
@@ -25,6 +26,7 @@ type alias Model =
     { grid : Array Cell
     , current : Int
     , score : Int
+    , help : Bool
     }
 
 
@@ -32,10 +34,15 @@ type Msg
     = PressedLetter Char
     | PressedControl String
     | NewBoard
-    -- | Save
-    -- | Load
-    -- | FileSelected File.File
-    -- | FileLoaded String
+    | ShowHelp
+    | GotHelp
+
+
+
+-- | Save
+-- | Load
+-- | FileSelected File.File
+-- | FileLoaded String
 
 
 type Dir
@@ -90,32 +97,31 @@ update msg model =
         NewBoard ->
             ( initialModel, Cmd.none )
 
+        ShowHelp ->
+            ( { model | help = True }, Cmd.none )
+
+        GotHelp ->
+            ( { model | help = False }, Cmd.none )
+
         -- Load ->
         --     ( model, Select.file [ "application/json" ] FileSelected )
-
         -- FileSelected file ->
         --     ( model, Task.perform FileLoaded (File.toString file) )
-
         -- FileLoaded content ->
         --     ( case decodeString modelDecoder content of
         --         Ok v ->
         --             v
-
         --         Err _ ->
         --             initialModel
         --     , Cmd.none
         --     )
-
         -- Save ->
         --     ( model, Download.string "board.json" "application/json" (Encode.encode 2 (encodeModel model)) )
-
         PressedControl _ ->
             ( model, Cmd.none )
 
         PressedLetter _ ->
             ( model, Cmd.none )
-
-
 
 
 
@@ -126,8 +132,13 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "App" ]
-        [ div [ class "UI" ]
+    div
+        [ classList
+            [ ( "App", True )
+            , ( "is-flipped", model.help )
+            ]
+        ]
+        [ div [ class "App-front" ]
             [ div [ class "Grid" ]
                 (List.map
                     (\( i, c ) ->
@@ -156,10 +167,28 @@ view model =
                 [ p [] [ text ("Score: " ++ String.fromInt model.score) ]
                 , div [ class "HUD-toolbar" ]
                     [ button [ onClick NewBoard ] [ text "New" ]
+                    , button [ onClick ShowHelp ] [ text "?" ]
+
                     -- , button [ onClick Load ] [ text "Load" ]
                     -- , button [ onClick Save ] [ text "Save" ]
                     ]
                 ]
+            ]
+        , div [ class "App-back" ]
+            [ p []
+                [ text "Use "
+                , code [] [ text "hjkl" ]
+                , text " or the arrow keys to move the cursor."
+                , br [] []
+                , text "Press space to place a value."
+                ]
+            , p [] [ text "The rules are:" ]
+            , ul []
+                [ li [] [ text "You can place a new value along the x-axis skipping 2 cells" ]
+                , li [] [ text "You can place a new value diagonally skipping 1 cell" ]
+                ]
+            , p [] [ text "The UI shows the possible moves, have fun!" ]
+            , button [ onClick GotHelp ] [text "Got it"]
             ]
         ]
 
@@ -184,8 +213,6 @@ main =
 ----------------------------------------------
 -- Helpers
 ----------------------------------------------
-
-
 -- modelDecoder : Decoder Model
 -- modelDecoder =
 --     map3 Model
@@ -196,10 +223,8 @@ main =
 --                         (\v ->
 --                             if v == -1 then
 --                                 Decode.succeed Available
-
 --                             else if v == -2 then
 --                                 Decode.succeed Unavailable
-
 --                             else
 --                                 Decode.succeed (Occupied v)
 --                         )
@@ -208,8 +233,6 @@ main =
 --         )
 --         (field "current" int)
 --         (field "score" int)
-
-
 -- encodeModel : Model -> Encode.Value
 -- encodeModel m =
 --     Encode.object
@@ -217,18 +240,14 @@ main =
 --         , ( "current", Encode.int m.current )
 --         , ( "score", Encode.int m.score )
 --         ]
-
-
 -- encodeCell : Cell -> Encode.Value
 -- encodeCell c =
 --     Encode.int
 --         (case c of
 --             Occupied v ->
 --                 v
-
 --             Available ->
 --                 -1
-
 --             Unavailable ->
 --                 -2
 --         )
@@ -366,7 +385,7 @@ cellToText c =
 
 initialModel : Model
 initialModel =
-    Model (Array.fromList (List.repeat 100 Available)) 0 0
+    Model (Array.fromList (List.repeat 100 Available)) 0 0 False
 
 
 keyDecoder : Decode.Decoder Msg
