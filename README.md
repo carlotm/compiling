@@ -5,6 +5,8 @@ it's a silly game to play while compiling (https://xkcd.com/303).
 
 Warning: I don't know if the puzzle actually has a solution.
 
+[Play the game](https://carlotm.github.io/compiling)
+
 Rules are:
 
 - Move the cursor with `hjkl` or arrow keys
