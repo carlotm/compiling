@@ -1,7 +1,7 @@
 # Compiling
 
 When I was a child, my sister showed me this puzzle,
-it's a silly game to play while compiling (https://xkcd.com/303).
+it's a puzzle game to play while compiling (https://xkcd.com/303).
 
 Warning: I don't know if the puzzle actually has a solution.
 
