@@ -10,7 +10,7 @@ import File.Select as Select
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Json.Decode as Decode exposing (Decoder, decodeString, field, int, map4, string, bool)
+import Json.Decode as Decode exposing (Decoder, bool, decodeString, field, int, map4, string)
 import Json.Encode as Encode
 import Task
 
@@ -40,6 +40,7 @@ type Msg
     | Load
     | FileSelected File.File
     | FileLoaded String
+    | CellClicked Int
 
 
 type Dir
@@ -81,6 +82,9 @@ update msg model =
 
         PressedLetter ' ' ->
             ( maybeSetValue model, Cmd.none )
+
+        CellClicked i ->
+            ( maybeSetValueAt model i, Cmd.none )
 
         PressedLetter 'j' ->
             ( { model | current = move Down model.current }, Cmd.none )
@@ -163,6 +167,7 @@ view model =
                                 ]
                             , tabindex 1
                             , id ("cell-" ++ String.fromInt i)
+                            , onClick (CellClicked i)
                             ]
                             [ span [ class "Cell-val" ] [ text (cellToText c) ]
                             , span [ class "Cell-index" ] [ text (String.fromInt i) ]
@@ -271,34 +276,40 @@ encodeCell c =
         )
 
 
-maybeSetValue : Model -> Model
-maybeSetValue m =
+maybeSetValueAt : Model -> Int -> Model
+maybeSetValueAt m i =
     let
         currentCell =
-            Array.get m.current m.grid
+            Array.get i m.grid
     in
     case currentCell of
         Just Available ->
-            occupyCell m
+            occupyCellAt m i
 
         _ ->
             m
 
 
-occupyCell : Model -> Model
-occupyCell m =
+maybeSetValue : Model -> Model
+maybeSetValue m =
+    maybeSetValueAt m m.current
+
+
+occupyCellAt : Model -> Int -> Model
+occupyCellAt m i =
     let
         withOccupiedCurrent =
-            Array.set m.current (Occupied (m.score + 1)) m.grid
+            Array.set i (Occupied (m.score + 1)) m.grid
 
         withAvailables =
             Array.indexedMap
-                (\i c -> cellAvailability i c m.current)
+                (\idx c -> cellAvailability idx c i)
                 withOccupiedCurrent
     in
     { m
         | grid = withAvailables
         , score = m.score + 1
+        , current = i
     }
 
 

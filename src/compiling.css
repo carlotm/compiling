@@ -190,16 +190,19 @@ button
 .Cell.is-occupied
 {
     background-color: var(--white);
+    cursor: not-allowed;
 }
 
 .Cell.is-available
 {
     background-color: var(--papirus);
+    cursor: pointer;
 }
 
 .Cell.is-unavailable
 {
     background-color: var(--gray01);
+    cursor: not-allowed;
 }
 
 .Cell.is-current
